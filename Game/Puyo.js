@@ -15,18 +15,6 @@ class _Puyo {
     }
 }
 
-_Puyo.prototype.tick = function () {
-
-
-    this.update();
-
-    // If contacted bottom
-    if (this.y >= 12 || occupation_chart[this.y][this.x] == 1) {
-        return "destory";
-    }
-    return "";
-}
-
 _Puyo.prototype.update = function () {
 
     this.display.x = this.x*PUYO_SIZE;

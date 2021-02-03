@@ -20,36 +20,27 @@ class _Pair {
 _Pair.prototype.tick = function () {
 
     this.Input_handler();
+    this.Gravity();
 
-    
-    // Gravity
+    this.update_puyos();
+
+    this.Position_check();
+}
+
+
+
+_Pair.prototype.Gravity = function () {
     this.gravity_tick ++;
     if (this.gravity_tick > Game.gravity_limit) {
         this.gravity_tick = 0;
         this.y ++;
     }
-
-    // Update puyos
-    this.puyo1.x = this.x;
-    this.puyo1.y = this.y;
-    this.puyo2.x = this.x + rotation_dx[this.rotation];
-    this.puyo2.y = this.y + rotation_dy[this.rotation];
-    
-    var destory = false;
-
-    destory = destory || ("destory" == this.puyo1.tick());
-    destory = destory || ("destory" == this.puyo2.tick());
-
-    if (destory) this.new_pair();
-
 }
 
 
 
 
 _Pair.prototype.Input_handler = function () {
-
-    let original = this.x;
 
     if (moveKey[37]) { // left
         this.x --;
@@ -59,18 +50,6 @@ _Pair.prototype.Input_handler = function () {
         this.x ++;
     }
 
-    // if passed boarder
-    if (this.x < 0 || this.x >= 6) {
-        this.x = original;
-    }
-    // if contacts stack
-    if (occupation_chart[this.y][this.x] ||
-        occupation_chart[this.y + rotation_dy[this.rotation]][this.x + rotation_dy[this.rotation]]) {
-
-        this.x = original;
-    }
-
-
     if (commandKey[38]) { // up, cw rotation
         this.rotation = (this.rotation + 1) % 4;
     }
@@ -79,6 +58,52 @@ _Pair.prototype.Input_handler = function () {
     }
 }
 
+
+
+
+
+
+_Pair.prototype.Position_check = function () {
+    
+    // If contact left wall
+    if (this.puyo1.x < 0 || this.puyo2.x < 0 ) {
+        while (this.puyo1.x < 0 || this.puyo2.x < 0 ) {
+            this.x ++;
+            this.update_puyos();
+        }
+    }
+
+    // If contact right wall
+    if (this.puyo1.x >= 6 || this.puyo2.x >= 6) {
+        while (this.puyo1.x >= 6 || this.puyo2.x >= 6) {
+            this.x --;
+            this.update_puyos();
+        }
+    }
+
+    // If contact floor
+    if (this.puyo1.y >= 12 || this.puyo2.y >= 12) {
+        this.new_pair();
+    }
+
+    // If contact stack 
+    if (occupation_chart[this.puyo1.y][this.puyo1.x] || 
+        occupation_chart[this.puyo2.y][this.puyo2.x]) {
+        
+        // Splitting cases
+        while (this.puyo1.y < 12 && !occupation_chart[this.puyo1.y][this.puyo1.x]) {
+            this.puyo1.y ++;
+        }
+        while (this.puyo2.y < 12 && !occupation_chart[this.puyo2.y][this.puyo2.x]) {
+            this.puyo2.y ++;
+        }
+
+        this.new_pair();
+    }
+
+    this.puyo1.update();
+    this.puyo2.update();
+}
 
 
 
@@ -102,10 +127,21 @@ _Pair.prototype.new_pair = function () {
     this.puyo2 = new _Puyo(2,1, undefined, this);
 
     this.rotation = 0;
-    
+
     this.x = this.puyo1.x;
     this.y = this.puyo1.y;
 
     this.puyo1.update();
     this.puyo2.update();
+}
+
+
+
+
+_Pair.prototype.update_puyos = function () { 
+    // Update puyos
+    this.puyo1.x = this.x;
+    this.puyo1.y = this.y;
+    this.puyo2.x = this.x + rotation_dx[this.rotation];
+    this.puyo2.y = this.y + rotation_dy[this.rotation];
 }
